@@ -1,25 +1,18 @@
 {% extends "base.html" %}
+{% block title %}Guruhlar{% endblock %}
+
+{% block head_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/groups.css') }}">
+{% endblock %}
 
 {% block content %}
-<h2 class="mb-3">Guruhlar ro‘yxati</h2>
+<h1>Guruhlar ro‘yxati</h1>
+<button id="openAddGroup" class="btn-add">+ Guruh qo‘shish</button>
 
-<!-- Add Group -->
-<button class="btn btn-success mb-3"
-        data-bs-toggle="modal"
-        data-bs-target="#addGroupModal">
-  + Guruh qo‘shish
-</button>
-
-<table class="table table-bordered">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Nomi</th>
-      <th>Jadval</th>
-      <th>O‘quvchilar</th>
-      <th>Amal</th>
-    </tr>
-  </thead>
+<table class="data-table">
+  <thead><tr>
+    <th>ID</th><th>Nomi</th><th>Jadval</th><th>O‘quvchilar</th><th>Amal</th>
+  </tr></thead>
   <tbody>
     {% for g in groups %}
     <tr>
@@ -27,27 +20,13 @@
       <td>{{ g.name }}</td>
       <td>{{ g.schedule }}</td>
       <td>{{ g.students|length }}</td>
-      <td>
-        <!-- Detail / Ko'proq -->
-        <a href="{{ url_for('group_detail', group_id=g.id) }}"
-           class="btn btn-sm btn-primary">
-          Ko‘proq
-        </a>
-
-        <!-- Edit -->
-        <button class="btn btn-sm btn-outline-info edit-group-btn"
-                data-id="{{ g.id }}">
-          Tahrirlash
-        </button>
-
-        <!-- Delete -->
-        <form method="POST"
-              action="{{ url_for('delete_group', id=g.id) }}"
+      <td class="table-actions">
+        <a href="{{ url_for('group_detail', group_id=g.id) }}" class="btn-primary">Ko‘proq</a>
+        <button class="btn-edit" data-id="{{ g.id }}">Tahrirlash</button>
+        <form method="POST" action="{{ url_for('delete_group', id=g.id) }}"
               style="display:inline"
-              onsubmit="return confirm('Guruhni o‘chirishni tasdiqlaysizmi?');">
-          <button type="submit" class="btn btn-sm btn-outline-danger">
-            O‘chirish
-          </button>
+              onsubmit="return confirm('O‘chirishni tasdiqlaysizmi?');">
+          <button type="submit" class="btn-danger">O‘chirish</button>
         </form>
       </td>
     </tr>
@@ -55,36 +34,31 @@
   </tbody>
 </table>
 
-{#  Include the modals with context so `form` and JS can find them #}
 {% include 'group_form_modal.html' with context %}
 {% endblock %}
 
-
 {% block scripts %}
-  <!-- Bootstrap 5 bundle -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- jQuery only for AJAX getJSON -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+  const addGrpModal = document.getElementById('addGroupModal');
+  document.getElementById('openAddGroup').onclick   = ()=>addGrpModal.classList.add('show');
+  document.getElementById('closeAddGroup').onclick  = ()=>addGrpModal.classList.remove('show');
+  document.getElementById('cancelAddGroup').onclick = ()=>addGrpModal.classList.remove('show');
+  addGrpModal.onclick = e=>{ if(e.target===addGrpModal) addGrpModal.classList.remove('show'); };
 
-  <script>
-    function openEditGroupModal(id) {
-      // set the form action URL
-      $('#editGroupForm').attr('action', `/group/${id}/edit`);
-      // fetch existing group data
-      $.getJSON(`/group/${id}/json`, data => {
-        $('#edit_group_name').val(data.name);
-        $('#edit_group_schedule').val(data.schedule);
-        // show the modal
-        new bootstrap.Modal(document.getElementById('editGroupModal')).show();
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('.edit-group-btn').forEach(btn => {
-        btn.addEventListener('click', () =>
-          openEditGroupModal(btn.getAttribute('data-id'))
-        );
-      });
-    });
-  </script>
+  const editGrpModal = document.getElementById('editGroupModal');
+  document.querySelectorAll('.btn-edit').forEach(btn=>{
+    btn.onclick = ()=>{
+      fetch(`/group/${btn.dataset.id}/json`)
+        .then(r=>r.json()).then(data=>{
+          document.getElementById('editGroupForm').action = `/group/${data.id}/edit`;
+          document.getElementById('edit_group_name').value     = data.name;
+          document.getElementById('edit_group_schedule').value = data.schedule;
+          editGrpModal.classList.add('show');
+        });
+    };
+  });
+  document.getElementById('closeEditGroup').onclick  = ()=>editGrpModal.classList.remove('show');
+  document.getElementById('cancelEditGroup').onclick = ()=>editGrpModal.classList.remove('show');
+  editGrpModal.onclick = e=>{ if(e.target===editGrpModal) editGrpModal.classList.remove('show'); };
+</script>
 {% endblock %}

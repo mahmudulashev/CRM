@@ -1,143 +1,145 @@
 {% extends "base.html" %}
+{% block title %}O‘quvchilar{% endblock %}
+
+{% block head_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/students.css') }}">
+{% endblock %}
 
 {% block content %}
-<h2 class="mb-3">O‘quvchilar ro‘yxati</h2>
+<h1>O‘quvchilar ro‘yxati</h1>
 
-<!-- Filter & Search -->
-<form class="row g-2 mb-3" method="GET" action="{{ url_for('students') }}">
-  <div class="col-md-3">
-    <input type="text"
-           name="q"
-           value="{{ q }}"
-           class="form-control"
-           placeholder="Qidiruv…">
-  </div>
-  <div class="col-md-2">
-    <select name="status"
-            class="form-select"
-            multiple
-            size="3">
-      <option value="active"  {% if 'active'  in statuses %}selected{% endif %}>Active</option>
-      <option value="left"    {% if 'left'    in statuses %}selected{% endif %}>Left</option>
-      <option value="on-hold" {% if 'on-hold' in statuses %}selected{% endif %}>On-hold</option>
-    </select>
-  </div>
-  <div class="col-md-3">
-    <select name="group"
-            class="form-select"
-            multiple
-            size="5">
-      {% for g in groups %}
-      <option value="{{ g.id }}"
-              {% if g.id in group_ids %}selected{% endif %}>
+<form class="filter-form" method="GET" action="{{ url_for('students') }}">
+  <input type="text" name="q" value="{{ q }}" placeholder="Qidiruv…" class="input-text">
+  <select name="status" multiple size="3" class="input-multiselect">
+    <option value="active"  {% if 'active'  in statuses %}selected{% endif %}>Active</option>
+    <option value="left"    {% if 'left'    in statuses %}selected{% endif %}>Left</option>
+    <option value="on-hold" {% if 'on-hold' in statuses %}selected{% endif %}>On-hold</option>
+  </select>
+  <select name="group" multiple size="5" class="input-multiselect">
+    {% for g in groups %}
+      <option value="{{ g.id }}" {% if g.id in group_ids %}selected{% endif %}>
         {{ g.name }}
       </option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-md-2">
-    <button type="submit" class="btn btn-primary w-100">Filtrlash</button>
-  </div>
-  <div class="col-md-2">
-    <button type="button"
-            class="btn btn-success w-100"
-            data-bs-toggle="modal"
-            data-bs-target="#addStudentModal">
-      + O‘quvchi qo‘shish
-    </button>
-  </div>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn-filter">Filtrlash</button>
+  <button type="button" id="openAddStudent" class="btn-add">+ O‘quvchi qo‘shish</button>
 </form>
 
-<!-- Students Table -->
-<table class="table table-hover table-bordered">
-  <thead class="table-light">
+<table class="data-table">
+  <thead>
     <tr>
-      <th>ID</th>
-      <th>Ism</th>
-      <th>Guruh(lar)</th>
-      <th>Status</th>
-      <th>Ota-ona</th>
-      <th>Telefonlar</th>
-      <th>Qo‘shilgan sana</th>
-      <th>Oylik kuni</th>
-      <th>Komment</th>
-      <th>Amal</th>
+      <th>ID</th><th>Ism</th><th>Guruh(lar)</th><th>Status</th>
+      <th>Ota-ona</th><th>Telefonlar</th><th>Qo‘shilgan sana</th>
+      <th>Oylik kuni</th><th>Komment</th><th>Amal</th>
     </tr>
   </thead>
   <tbody>
     {% for s in students %}
     <tr>
       <td>{{ s.id }}</td>
+      <td><a href="{{ url_for('student_detail', id=s.id) }}">{{ s.fullname }}</a></td>
       <td>
-        <a href="{{ url_for('student_detail', id=s.id) }}">
-          {{ s.fullname }}
-        </a>
-      </td>
-      <td>
-        {% for g in s.groups %}
-          {{ g.name }}{% if not loop.last %}, {% endif %}
-        {% endfor %}
+        {% for g in s.groups %}{{ g.name }}{% if not loop.last %}, {% endif %}{% endfor %}
       </td>
       <td>{{ s.status }}</td>
       <td>{{ s.parent_name }}</td>
       <td>
-        {{ s.phone1 }}<br>
-        {{ s.phone2 }}<br>
-        {{ s.phone3 }}
+        {{ s.phone1 }}{% if s.phone2 %}<br>{{ s.phone2 }}{% endif %}
+        {% if s.phone3 %}<br>{{ s.phone3 }}{% endif %}
       </td>
       <td>{{ s.join_date }}</td>
       <td>{{ s.payment_day }}-kun</td>
       <td>{{ s.comments }}</td>
-      <td>
-        <button type="button"
-                class="btn btn-sm btn-outline-info edit-btn"
-                data-id="{{ s.id }}">
-          Tahrirlash
-        </button>
-      </td>
+      <td><button class="btn-edit" data-id="{{ s.id }}">Tahrirlash</button></td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 
-{# Qo‘shish va tahrirlash modallarini konteksti bilan include qilamiz #}
-{% include 'student_form_modal.html' with context %}
+{# ——— Add Student Modal ——— #}
+<div id="addStudentModal" class="modal">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ url_for('add_student') }}">
+      {{ form.csrf_token }}
+      <h3>Yangi O‘quvchi qo‘shish</h3>
+      <button type="button" class="modal-close" id="closeAddStudent">×</button>
+      <div class="modal-body">
+        <label>Ism</label>{{ form.fullname(class_='form-control') }}
+        <label>Ota-ona ismi</label>{{ form.parent_name(class_='form-control') }}
+        <label>Telefon 1</label>{{ form.phone1(class_='form-control') }}
+        <label>Telefon 2</label>{{ form.phone2(class_='form-control') }}
+        <label>Telefon 3</label>{{ form.phone3(class_='form-control') }}
+        <label>Status</label>{{ form.status(class_='form-control') }}
+        <label>Qo‘shilgan sana</label>{{ form.join_date(class_='form-control', type='date') }}
+        <label>Oylik kuni</label>{{ form.payment_day(class_='form-control') }}
+        <label>Komment</label>{{ form.comments(class_='form-control') }}
+        <label>Guruh(lar)</label>{{ form.groups(class_='form-control', multiple=True) }}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="cancelAddStudent">Bekor</button>
+        <button type="submit" class="btn-primary">Qo‘shish</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ——— Edit Student Modal ——— #}
+<div id="editStudentModal" class="modal">
+  <div class="modal-dialog">
+    <form id="editStudentForm" method="POST" action="">
+      {{ form.csrf_token }}
+      <h3>O‘quvchini tahrirlash</h3>
+      <button type="button" class="modal-close" id="closeEditStudent">×</button>
+      <div class="modal-body">
+        <label>Ism</label>{{ form.fullname(class_='form-control', id='edit_fullname') }}
+        <label>Ota-ona ismi</label>{{ form.parent_name(class_='form-control', id='edit_parent_name') }}
+        <label>Telefon 1</label>{{ form.phone1(class_='form-control', id='edit_phone1') }}
+        <label>Telefon 2</label>{{ form.phone2(class_='form-control', id='edit_phone2') }}
+        <label>Telefon 3</label>{{ form.phone3(class_='form-control', id='edit_phone3') }}
+        <label>Status</label>{{ form.status(class_='form-control', id='edit_status') }}
+        <label>Qo‘shilgan sana</label>{{ form.join_date(class_='form-control', id='edit_join_date', type='date') }}
+        <label>Oylik kuni</label>{{ form.payment_day(class_='form-control', id='edit_payment_day') }}
+        <label>Komment</label>{{ form.comments(class_='form-control', id='edit_comments') }}
+        <label>Guruh(lar)</label>{{ form.groups(class_='form-control', id='edit_groups', multiple=True) }}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="cancelEditStudent">Bekor</button>
+        <button type="submit" class="btn-primary">Saqlash</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
-
 {% block scripts %}
-  <!-- Bootstrap 5 JS bundle (Popper.js kiradi) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- jQuery faqat AJAX uchun -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+  // Add‐student modal
+  const addModal      = document.getElementById('addStudentModal');
+  document.getElementById('openAddStudent').onclick   = () => addModal.classList.add('show');
+  document.getElementById('closeAddStudent').onclick  = () => addModal.classList.remove('show');
+  document.getElementById('cancelAddStudent').onclick = () => addModal.classList.remove('show');
+  addModal.onclick = e=>{ if(e.target===addModal) addModal.classList.remove('show'); };
 
-  <script>
-    // Modalni ochish va formani to‘ldirish
-    function openEditModal(id) {
-      document.getElementById('editStudentForm').action = `/student/${id}/edit`;
-      $.getJSON(`/student/${id}/json`, data => {
-        $('#edit_fullname').val(data.fullname);
-        $('#edit_parent_name').val(data.parent_name);
-        $('#edit_phone1').val(data.phone1);
-        $('#edit_phone2').val(data.phone2);
-        $('#edit_phone3').val(data.phone3);
-        $('#edit_status').val(data.status);
-        $('#edit_join_date').val(data.join_date);
-        $('#edit_payment_day').val(data.payment_day);
-        $('#edit_comments').val(data.comments);
-        $('#edit_groups option').prop('selected', false);
-        data.groups.forEach(gid => {
-          $(`#edit_groups option[value="${gid}"]`).prop('selected', true);
+  // Edit‐student modal
+  const editModal      = document.getElementById('editStudentModal');
+  document.querySelectorAll('.btn-edit').forEach(btn=>{
+    btn.onclick = ()=>{
+      fetch(`/student/${btn.dataset.id}/json`)
+        .then(r=>r.json()).then(data=>{
+          document.getElementById('editStudentForm').action = `/student/${data.id}/edit`;
+          ['fullname','parent_name','phone1','phone2','phone3','status','join_date','payment_day','comments']
+            .forEach(f=>document.getElementById('edit_'+f).value=data[f]);
+          document.querySelectorAll('#edit_groups option').forEach(o=>o.selected=false);
+          data.groups.forEach(gid=>{
+            document.querySelector(`#edit_groups option[value="${gid}"]`).selected=true;
+          });
+          editModal.classList.add('show');
         });
-        new bootstrap.Modal(document.getElementById('editStudentModal')).show();
-      });
-    }
-
-    // DOM tayyor bo‘lgach, tugmalarni bog‘laymiz
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', () => openEditModal(btn.dataset.id));
-      });
-    });
-  </script>
+    };
+  });
+  document.getElementById('closeEditStudent').onclick  = ()=>editModal.classList.remove('show');
+  document.getElementById('cancelEditStudent').onclick= ()=>editModal.classList.remove('show');
+  editModal.onclick = e=>{ if(e.target===editModal) editModal.classList.remove('show'); };
+</script>
 {% endblock %}

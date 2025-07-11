@@ -15,13 +15,18 @@ app.config['SECRET_KEY']                     = 'verysecret'
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# ─── Inject current_year into all templates ──────────────────────────────────
+@app.context_processor
+def inject_current_year():
+    return {'current_year': date.today().year}
+
 
 @app.route('/')
 def index():
     return redirect(url_for('students'))
 
 
-# ----------------- STUDENTS -----------------
+# ─── STUDENTS: list + multi‐filter ───────────────────────────────────────────
 @app.route('/students')
 def students():
     form = StudentForm()
@@ -39,16 +44,17 @@ def students():
     if group_ids:
         query = query.join(Student.groups).filter(Group.id.in_(group_ids))
 
-    students = query.all()
-    groups   = Group.query.all()
+    students_list = query.all()
+    groups_list   = Group.query.all()
+
     return render_template(
         'students.html',
-        students  = students,
-        groups    = groups,
-        form      = form,
-        q         = q,
-        statuses  = statuses,
-        group_ids = group_ids
+        students   = students_list,
+        groups     = groups_list,
+        form       = form,
+        q          = q,
+        statuses   = statuses,
+        group_ids  = group_ids
     )
 
 
@@ -134,7 +140,7 @@ def student_detail(id):
     return render_template('student_detail.html', student=student)
 
 
-# ----------------- GROUPS -----------------
+# ─── GROUPS: list, add, edit, delete ────────────────────────────────────────
 @app.route('/groups')
 def groups():
     form   = GroupForm()
@@ -158,7 +164,11 @@ def add_group():
 @app.route('/group/<int:id>/json')
 def get_group_json(id):
     g = Group.query.get_or_404(id)
-    return jsonify({'id': g.id, 'name': g.name, 'schedule': g.schedule})
+    return jsonify({
+        'id'      : g.id,
+        'name'    : g.name,
+        'schedule': g.schedule
+    })
 
 
 @app.route('/group/<int:id>/edit', methods=['POST'])
@@ -190,40 +200,38 @@ def group_detail(group_id):
     students = group.students
     return render_template(
         'group_detail.html',
-        group=group,
-        students=students
+        group    = group,
+        students = students
     )
 
 
-# ----------------- ATTENDANCE MATRIX + AVERAGE + N/A -----------------
+# ─── MONTHLY ATTENDANCE MATRIX + N/A + AVG HOMEWORK ─────────────────────────
 @app.route('/group/<int:group_id>/attendance_matrix', methods=['GET','POST'])
 def attendance_matrix(group_id):
     group    = Group.query.get_or_404(group_id)
     students = group.students
 
-    # 1) Yil/oyni olamiz
+    # Year & month
     today         = date.today()
     year          = int(request.args.get('year', today.year))
     month         = int(request.args.get('month', today.month))
     days_in_month = monthrange(year, month)[1]
 
-    # 2) Guruh jadvalidagi haftaning kunlari
+    # Scheduled weekdays filter
     wk_map = {'Mon':0,'Tue':1,'Wed':2,'Thu':3,'Fri':4,'Sat':5,'Sun':6}
-    wanted = [wk_map[s.strip()] for s in group.schedule.split(',') if s.strip() in wk_map]
+    wanted = [wk_map[d.strip()] for d in group.schedule.split(',') if d.strip() in wk_map]
     days   = [
         date(year, month, d)
         for d in range(1, days_in_month+1)
         if date(year, month, d).weekday() in wanted
     ]
 
-    if request.method=='POST':
+    if request.method == 'POST':
         for s in students:
             for d in days:
-                sid  = str(s.id)
-                dstr = d.isoformat()
-
-                #   3a) Attendance upsert
-                attended = request.form.get(f'attend_{sid}_{dstr}')=='on'
+                sid, dstr = str(s.id), d.isoformat()
+                # Attendance upsert
+                attended = request.form.get(f'attend_{sid}_{dstr}') == 'on'
                 att = Attendance.query.filter_by(
                     date=d, student_id=s.id, group_id=group.id
                 ).first()
@@ -234,9 +242,8 @@ def attendance_matrix(group_id):
                 else:
                     att.status = attended
 
-                #   3b) Homework upsert: N/A opsiyasi uchun value="na"
+                # Homework upsert with N/A
                 raw = request.form.get(f'homework_{sid}_{dstr}')
-                # agar raw=='na' yoki bo‘sh bo‘lsa → o‘chirib tashlaymiz
                 hw = Homework.query.filter_by(
                     date=d, student_id=s.id, group_id=group.id
                 ).first()
@@ -244,50 +251,49 @@ def attendance_matrix(group_id):
                     if hw:
                         db.session.delete(hw)
                 else:
-                    percent = int(raw)
+                    pct = int(raw)
                     if not hw:
-                        hw = Homework(date=d, percent_done=percent,
+                        hw = Homework(date=d, percent_done=pct,
                                       student_id=s.id, group_id=group.id)
                         db.session.add(hw)
                     else:
-                        hw.percent_done = percent
+                        hw.percent_done = pct
 
         db.session.commit()
-        flash("Oylik davomat va uy ishi saqlandi!", "success")
+        flash('Oylik davomat va uy ishi saqlandi!', 'success')
         return redirect(url_for(
             'attendance_matrix',
-            group_id=group.id,
+            group_id=group_id,
             year=year,
             month=month
         ))
 
-    # 4) GET: mavjud yozuvlarni yuklab olamiz
+    # Load existing records
     att_map = {
         (a.student_id, a.date): a
         for a in Attendance.query.filter(
-            Attendance.group_id==group.id,
+            Attendance.group_id==group_id,
             Attendance.date.between(days[0], days[-1])
         )
     }
     hw_map = {
         (h.student_id, h.date): h
         for h in Homework.query.filter(
-            Homework.group_id==group.id,
+            Homework.group_id==group_id,
             Homework.date.between(days[0], days[-1])
         )
     }
 
-    # 5) O‘rtacha uy ishi foizini hisoblaymiz (faqat N/A bo‘lmagan kunlar)
+    # Compute average homework % (exclude N/A)
     avg_hw = {}
     for s in students:
-        total = 0
-        count = 0
+        total, count = 0, 0
         for d in days:
             h = hw_map.get((s.id, d))
-            if h is not None:    # faqat mavjud (ya’ni “na” bo‘lmagan)
+            if h is not None:
                 total += h.percent_done
                 count += 1
-        avg_hw[s.id] = round(total/count,1) if count else None
+        avg_hw[s.id] = round(total/count, 1) if count else None
 
     return render_template(
         'attendance_matrix.html',

@@ -1,0 +1,14 @@
+h1{color:#004080;margin-bottom:1rem}
+.filter-form{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.input-text{flex:1;padding:.4rem}
+.input-multiselect{width:8rem;height:5rem}
+.btn-filter,.btn-add{padding:.4rem .8rem;border:none;cursor:pointer}
+.btn-filter{background:#28a745;color:#fff}
+.btn-add{background:#28a745;color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000}
+.modal.show{display:flex}
+.modal-dialog{background:#fff;border-radius:4px;padding:1rem;width:90%;max-width:500px;position:relative}
+.modal-close{position:absolute;top:.5rem;right:.5rem;background:transparent;border:none;font-size:1.5rem;cursor:pointer}
+.modal-body label{display:block;margin-top:.8rem;font-weight:bold}
+.modal-body .form-control{width:100%;padding:.4rem;margin-top:.2rem;border:1px solid #ccc;border-radius:3px}
+.modal-footer{text-align:right;margin-top:1rem}

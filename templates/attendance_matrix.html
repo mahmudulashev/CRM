@@ -1,53 +1,41 @@
 {% extends "base.html" %}
+{% block title %}Oylik jadval{% endblock %}
+
+{% block head_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
+{% endblock %}
+
 {% block content %}
-<h4 class="mb-3">
-  {{ group.name }} – {{ month }}-oy, {{ year }} yil (Oylik jadval)
-</h4>
+<h1>{{ group.name }} — {{ month }}/{{ year }} oylik jadval</h1>
 
 <form method="POST">
-  <table class="table table-bordered table-sm" style="font-size:12px;">
-    <thead>
-      <tr>
-        <th>Ism</th>
-        {% for d in days %}
-          <th style="min-width:60px">{{ d.day }}</th>
-        {% endfor %}
-        <th>O'rtacha uy ishi %</th>
-      </tr>
-    </thead>
+  <table class="data-table attendance">
+    <thead><tr>
+      <th>Ism</th>
+      {% for d in days %}<th>{{ d.day }}</th>{% endfor %}
+      <th>O‘rtacha uy ishi %</th>
+    </tr></thead>
     <tbody>
       {% for s in students %}
       <tr>
         <td>{{ s.fullname }}</td>
-
         {% for d in days %}
-        {% set key = d.isoformat() %}
-        {% set att = att_map.get((s.id, d)) %}
-        {% set hw  = hw_map.get((s.id, d)) %}
+        {% set att = att_map.get((s.id,d)) %}
+        {% set hw  = hw_map.get((s.id,d)) %}
         <td>
-          <div style="display:flex;align-items:center;gap:4px">
-            <!-- Attendance checkbox -->
-            <input type="checkbox"
-                   name="attend_{{ s.id }}_{{ key }}"
-                   {% if att and att.status %}checked{% endif %}>
-
-            <!-- Homework select: N/A + 0–100% -->
-            <select name="homework_{{ s.id }}_{{ key }}"
-                    class="form-select form-select-sm"
-                    style="width:70px;">
-              <option value="na" {% if hw is none %}selected{% endif %}>N/A</option>
-              {% for p in range(0,101) %}
-                <option value="{{ p }}"
-                  {% if hw and hw.percent_done==p %}selected{% endif %}>
-                  {{ p }}%
-                </option>
-              {% endfor %}
-            </select>
-          </div>
+          <input type="checkbox"
+                 name="attend_{{ s.id }}_{{ d.isoformat() }}"
+                 {% if att and att.status %}checked{% endif %}>
+          <select name="homework_{{ s.id }}_{{ d.isoformat() }}">
+            <option value="na" {% if hw is none %}selected{% endif %}>N/A</option>
+            {% for p in range(0,101) %}
+            <option value="{{ p }}" {% if hw and hw.percent_done==p %}selected{% endif %}>
+              {{ p }}%
+            </option>
+            {% endfor %}
+          </select>
         </td>
         {% endfor %}
-
-        <!-- Average homework % -->
         <td>
           {% if avg_hw[s.id] is not none %}
             <strong>{{ avg_hw[s.id] }}%</strong>
@@ -59,18 +47,14 @@
       {% endfor %}
     </tbody>
   </table>
-
-  <button class="btn btn-success mt-2">Saqlash</button>
+  <button class="btn-primary">Saqlash</button>
 </form>
 
-<!-- Oy/yil almashtirish -->
-<form method="get" class="mt-3">
-  <label>Oy: <input type="number" name="month" value="{{ month }}" min="1" max="12" style="width:50px"></label>
-  <label class="ms-3">Yil: <input type="number" name="year" value="{{ year }}" min="2000" max="2100" style="width:70px"></label>
-  <button class="btn btn-secondary btn-sm ms-3">Oyni o‘zgartirish</button>
+<form method="get" class="switch-month">
+  Oy: <input type="number" name="month" value="{{ month }}" min="1" max="12">
+  Yil: <input type="number" name="year"  value="{{ year }}"  min="2000" max="2100">
+  <button class="btn-secondary">Oyni o‘zgartirish</button>
 </form>
 
-<!-- Orqaga -->
-<a href="{{ url_for('group_detail', group_id=group.id) }}"
-   class="btn btn-outline-primary btn-sm mt-3">Orqaga</a>
+<a href="{{ url_for('group_detail', group_id=group.id) }}" class="btn-secondary">Orqaga</a>
 {% endblock %}

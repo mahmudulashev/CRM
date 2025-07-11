@@ -1,0 +1,7 @@
+h1{color:#006600;margin-bottom:1rem}
+.btn-add{background:#006600;color:#fff;border:none;padding:.5rem;cursor:pointer}
+.table-actions button,.table-actions a{margin-right:.3rem;padding:.3rem .6rem;cursor:pointer}
+.table-actions .btn-primary{background:#006600;color:#fff}
+.table-actions .btn-danger{background:#cc0000;color:#fff}
+/* reuse student modal styles */
+@import 'students.css';
