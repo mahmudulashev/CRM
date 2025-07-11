@@ -1,0 +1,117 @@
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" method="POST" action="{{ url_for('add_student') }}">
+      {{ form.csrf_token }}
+      <div class="modal-header">
+        <h5 class="modal-title">Yangi O‘quvchi Qo‘shish</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          {{ form.fullname.label(class_="form-label") }}
+          {{ form.fullname(class_="form-control") }}
+        </div>
+        <div class="mb-3">
+          {{ form.parent_name.label(class_="form-label") }}
+          {{ form.parent_name(class_="form-control") }}
+        </div>
+        <div class="mb-3">
+          {{ form.phone1.label(class_="form-label") }}
+          {{ form.phone1(class_="form-control") }}
+        </div>
+        <div class="mb-3">
+          {{ form.phone2.label(class_="form-label") }}
+          {{ form.phone2(class_="form-control") }}
+        </div>
+        <div class="mb-3">
+          {{ form.phone3.label(class_="form-label") }}
+          {{ form.phone3(class_="form-control") }}
+        </div>
+        <div class="mb-3">
+          {{ form.status.label(class_="form-label") }}
+          {{ form.status(class_="form-select") }}
+        </div>
+        <div class="mb-3">
+          {{ form.join_date.label(class_="form-label") }}
+          {{ form.join_date(class_="form-control", type="date") }}
+        </div>
+        <div class="mb-3">
+          {{ form.payment_day.label(class_="form-label") }}
+          {{ form.payment_day(class_="form-control") }}
+        </div>
+        <div class="mb-3">
+          {{ form.comments.label(class_="form-label") }}
+          {{ form.comments(class_="form-control", rows="3") }}
+        </div>
+        <div class="mb-3">
+          {{ form.groups.label(class_="form-label") }}
+          {{ form.groups(class_="form-select", multiple=True, size=5) }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor</button>
+        <button type="submit" class="btn btn-success">Qo‘shish</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Student Modal -->
+<div class="modal fade" id="editStudentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="editStudentForm" class="modal-content" method="POST" action="">
+      {{ form.csrf_token }}
+      <div class="modal-header">
+        <h5 class="modal-title">O‘quvchini Tahrirlash</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          {{ form.fullname.label(class_="form-label") }}
+          {{ form.fullname(class_="form-control", id="edit_fullname") }}
+        </div>
+        <div class="mb-3">
+          {{ form.parent_name.label(class_="form-label") }}
+          {{ form.parent_name(class_="form-control", id="edit_parent_name") }}
+        </div>
+        <div class="mb-3">
+          {{ form.phone1.label(class_="form-label") }}
+          {{ form.phone1(class_="form-control", id="edit_phone1") }}
+        </div>
+        <div class="mb-3">
+          {{ form.phone2.label(class_="form-label") }}
+          {{ form.phone2(class_="form-control", id="edit_phone2") }}
+        </div>
+        <div class="mb-3">
+          {{ form.phone3.label(class_="form-label") }}
+          {{ form.phone3(class_="form-control", id="edit_phone3") }}
+        </div>
+        <div class="mb-3">
+          {{ form.status.label(class_="form-label") }}
+          {{ form.status(class_="form-select", id="edit_status") }}
+        </div>
+        <div class="mb-3">
+          {{ form.join_date.label(class_="form-label") }}
+          {{ form.join_date(class_="form-control", type="date", id="edit_join_date") }}
+        </div>
+        <div class="mb-3">
+          {{ form.payment_day.label(class_="form-label") }}
+          {{ form.payment_day(class_="form-control", id="edit_payment_day") }}
+        </div>
+        <div class="mb-3">
+          {{ form.comments.label(class_="form-label") }}
+          {{ form.comments(class_="form-control", rows="3", id="edit_comments") }}
+        </div>
+        <div class="mb-3">
+          {{ form.groups.label(class_="form-label") }}
+          {{ form.groups(class_="form-select", multiple=True, size=5, id="edit_groups") }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor</button>
+        <button type="submit" class="btn btn-success">Saqlash</button>
+      </div>
+    </form>
+  </div>
+</div>

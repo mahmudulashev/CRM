@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>{{ student.fullname }}</h3>
+
+<ul class="list-group mb-3">
+  <li class="list-group-item">Status: {{ student.status }}</li>
+  <li class="list-group-item">Ota-ona: {{ student.parent_name }}</li>
+  <li class="list-group-item">
+    Telefonlar: {{ student.phone1 }} / {{ student.phone2 }} / {{ student.phone3 }}
+  </li>
+  <li class="list-group-item">
+    Guruh(lar): {% for g in student.groups %}{{ g.name }} {% endfor %}
+  </li>
+  <li class="list-group-item">Qo‘shilgan sana: {{ student.join_date }}</li>
+  <li class="list-group-item">Oylik kuni: {{ student.payment_day }}</li>
+  <li class="list-group-item">Komment: {{ student.comments }}</li>
+</ul>
+
+<!-- Delete Student -->
+<form method="POST"
+      action="{{ url_for('delete_student', id=student.id) }}"
+      onsubmit="return confirm('O‘quvchini o‘chirishni tasdiqlaysizmi?');">
+  <button type="submit" class="btn btn-danger">
+    O‘quvchini o‘chirish
+  </button>
+  <a href="{{ url_for('students') }}" class="btn btn-secondary ms-2">
+    Orqaga
+  </a>
+</form>
+{% endblock %}

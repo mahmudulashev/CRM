@@ -1,0 +1,6 @@
+body {
+  background: #f7fafd;
+}
+.table-hover tbody tr:hover {
+  background: #eff8ff;
+}

@@ -1,0 +1,55 @@
+{# Add Group Modal #}
+<div class="modal fade" id="addGroupModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" method="POST" action="{{ url_for('add_group') }}">
+      {{ form.csrf_token }}
+      <div class="modal-header">
+        <h5 class="modal-title">Yangi Guruh Qo‘shish</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          {{ form.name.label(class_="form-label") }}
+          {{ form.name(class_="form-control") }}
+        </div>
+        <div class="mb-3">
+          {{ form.schedule.label(class_="form-label") }}
+          {{ form.schedule(class_="form-control") }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary"
+                data-bs-dismiss="modal">Bekor</button>
+        <button type="submit" class="btn btn-success">Saqlash</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# Edit Group Modal #}
+<div class="modal fade" id="editGroupModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="editGroupForm" class="modal-content" method="POST" action="">
+      {{ form.csrf_token }}
+      <div class="modal-header">
+        <h5 class="modal-title">Guruhni Tahrirlash</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          {{ form.name.label(class_="form-label") }}
+          {{ form.name(class_="form-control", id="edit_group_name") }}
+        </div>
+        <div class="mb-3">
+          {{ form.schedule.label(class_="form-label") }}
+          {{ form.schedule(class_="form-control", id="edit_group_schedule") }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary"
+                data-bs-dismiss="modal">Bekor</button>
+        <button type="submit" class="btn btn-success">Saqlash</button>
+      </div>
+    </form>
+  </div>
+</div>
